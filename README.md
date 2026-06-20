@@ -106,4 +106,4 @@ city-pulse/
 
 ## License
 
-Built for Flipkart Grid 6.0 hackathon.
+Apache-2.0 license 
