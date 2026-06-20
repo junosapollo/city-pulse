@@ -1,0 +1,31 @@
+# Python virtual environment and cache
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Frontend dependencies and builds
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+node_modules/
+.next/
+dist/
+
+# Environment files
+.env*
+backend/.env*
+frontend/.env*
+
+# Datasets (ignoring the file larger than 100MB to avoid GitHub rejection)
+dataset/jan to may police violation_anonymized791b166.csv
+
+# OS files
+.DS_Store
+Thump.db
