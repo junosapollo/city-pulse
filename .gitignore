@@ -24,8 +24,8 @@ backend/.env*
 frontend/.env*
 
 # Datasets (ignoring the file larger than 100MB to avoid GitHub rejection)
-dataset/jan to may police violation_anonymized791b166.csv
-
+#dataset/jan to may police violation_anonymized791b166.csv
+dataset
 # OS files
 .DS_Store
 Thump.db
