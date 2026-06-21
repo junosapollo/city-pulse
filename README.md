@@ -1,6 +1,6 @@
 # CityPulse — Bengaluru Parking Intelligence Dashboard
 
-> Flipkart Gridlock 2.0 · Theme 1: Parking-Induced Congestion
+
 
 CityPulse is an interactive intelligence dashboard that fuses two real BTP datasets — **298,450 parking violations** and **8,173 traffic incidents** — into 8 analytical features for urban traffic management.
 
