@@ -9,12 +9,13 @@ const MapView = dynamic(() => import('./MapView'), { ssr: false });
 export default function HotspotMap() {
   const [data, setData] = useState(null);
   const [view, setView] = useState('station');
+  const [selectedStation, setSelectedStation] = useState(null);
 
   useEffect(() => {
     fetchAPI('/api/hotspot').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px' }}>Loading Hotspot Map...</div>;
+  if (!data) return <div style={{ padding: '24px', height: '100%' }}><div className="skeleton skeleton-map"></div></div>;
 
   const maxCount = Math.max(...data.stations.map(s => s.count));
 
@@ -52,7 +53,15 @@ export default function HotspotMap() {
                   key={s.name} 
                   center={[s.lat, s.lng]} 
                   radius={radius}
-                  pathOptions={{ fillColor: `rgb(${r},${g},${b})`, fillOpacity: 0.7, color: '#fff', weight: 1 }}
+                  pathOptions={{ 
+                    fillColor: selectedStation?.name === s.name ? 'var(--accent-rose)' : `rgb(${r},${g},${b})`, 
+                    fillOpacity: selectedStation?.name === s.name ? 0.9 : 0.7, 
+                    color: selectedStation?.name === s.name ? '#fff' : '#fff', 
+                    weight: selectedStation?.name === s.name ? 3 : 1 
+                  }}
+                  eventHandlers={{
+                    click: () => setSelectedStation(s)
+                  }}
                 >
                   <Tooltip>
                     <div style={{ textAlign: 'center' }}>
@@ -75,19 +84,53 @@ export default function HotspotMap() {
           </MapView>
         </div>
       </div>
-      <div className="glass-card scrollable-y" style={{ width: '320px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Top Hotspots</h3>
-        {data.stations.slice(0, 10).map((s, i) => (
-          <div key={s.name} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-              <span>{i + 1}. {s.name}</span>
-              <span style={{ fontWeight: 600 }}>{s.count.toLocaleString()}</span>
+      <div className="glass-card scrollable-y" style={{ width: '320px', display: 'flex', flexDirection: 'column', gap: '0' }}>
+        {selectedStation ? (
+          <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--accent-rose)', marginBottom: '8px' }}>{selectedStation.name}</h3>
+              <button onClick={() => setSelectedStation(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>&times;</button>
             </div>
-            <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${(s.count / maxCount) * 100}%`, background: 'var(--accent-blue)' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Total Violations:</span>
+                <strong style={{ fontSize: '1.1rem' }}>{selectedStation.count.toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Top Violation:</span>
+                <span style={{ textAlign: 'right', maxWidth: '60%' }}>{selectedStation.top_violation}</span>
+              </div>
             </div>
           </div>
-        ))}
+        ) : null}
+        
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Top Hotspots</h3>
+          {data.stations.slice(0, 10).map((s, i) => (
+            <div 
+              key={s.name} 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '8px', 
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '8px',
+                background: selectedStation?.name === s.name ? 'rgba(255,255,255,0.05)' : 'transparent',
+                transition: 'background 0.2s'
+              }}
+              onClick={() => setSelectedStation(s)}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ color: selectedStation?.name === s.name ? 'var(--accent-rose)' : 'inherit' }}>{i + 1}. {s.name}</span>
+                <span style={{ fontWeight: 600 }}>{s.count.toLocaleString()}</span>
+              </div>
+              <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${(s.count / maxCount) * 100}%`, background: selectedStation?.name === s.name ? 'var(--accent-rose)' : 'var(--accent-blue)' }} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

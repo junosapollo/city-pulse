@@ -1,7 +1,8 @@
 'use client';
+import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer } from 'react-leaflet';
 
-export default function MapView({ center = [12.9716, 77.5946], zoom = 11, style = { height: '500px', width: '100%' }, children }) {
+export default function MapView({ center = [12.9716, 77.5946], zoom = 11, style = { height: '100%', width: '100%' }, children }) {
   return (
     <MapContainer center={center} zoom={zoom} style={style}>
       <TileLayer

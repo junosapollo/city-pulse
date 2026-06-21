@@ -42,7 +42,9 @@ def compute(violations_df, events_df):
             "name": station,
             "divergence_score": div_score,
             "violation_peak_hours": [int(h) for h in v_peak],
-            "incident_peak_hours": [int(h) for h in e_peak]
+            "incident_peak_hours": [int(h) for h in e_peak],
+            "violation_hours": [int(x) for x in sv_hours],
+            "incident_hours": [int(x) for x in se_hours]
         })
         
     per_station.sort(key=lambda x: (x['divergence_score'] is None, -(x['divergence_score'] or 0)))

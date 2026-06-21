@@ -7,14 +7,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'rec
 
 export default function PressureScore() {
   const [data, setData] = useState(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     fetchAPI('/api/pressure-score').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px' }}>Loading Pressure Score...</div>;
+  if (!data) return <div style={{ padding: '24px', height: '100%' }}><div className="skeleton skeleton-chart"></div></div>;
 
-  const chartData = data.stations.map(s => {
+  const displayStations = showAll ? data.stations : data.stations.slice(0, 15);
+
+  const chartData = displayStations.map(s => {
     const max_d = Math.max(...data.stations.map(x => x.device_count));
     const d_norm = s.device_count / (max_d || 1);
     const d_gap = 1 - d_norm;
@@ -39,7 +42,19 @@ export default function PressureScore() {
         <StatsCard label={`Best Managed: ${bestStation.name}`} value={bestStation.score.toFixed(3)} color="var(--accent-emerald)" />
       </div>
 
-      <ChartWrapper title="Parking Pressure Score by Station" subtitle="Composite score representing stress on the parking enforcement system.">
+      <ChartWrapper 
+        title="Parking Pressure Score by Station" 
+        subtitle="Composite score representing stress on the parking enforcement system."
+        height={showAll ? Math.max(500, displayStations.length * 25) : 500}
+        extra={
+          <button
+            onClick={() => setShowAll(!showAll)}
+            style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}
+          >
+            {showAll ? 'Show Top 15' : 'Show All'}
+          </button>
+        }
+      >
         <BarChart data={chartData} layout="vertical" margin={{ top: 20, right: 20, bottom: 20, left: 100 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
           <XAxis type="number" domain={[0, 1]} tick={{ fill: 'var(--text-muted)' }} />

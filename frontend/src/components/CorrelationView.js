@@ -2,17 +2,17 @@
 import { useState, useEffect } from 'react';
 import { fetchAPI } from '@/lib/api';
 import ChartWrapper from './ChartWrapper';
-import StatsCard from './StatsCard';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, BarChart, Bar, Legend, Cell } from 'recharts';
-
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, BarChart, Bar, Legend, Cell, LabelList } from 'recharts';
+import { SkeletonChart } from './LoadingSkeleton';
 export default function CorrelationView() {
   const [data, setData] = useState(null);
+  const [selectedStation, setSelectedStation] = useState(null);
 
   useEffect(() => {
     fetchAPI('/api/correlation').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px' }}>Loading Correlation...</div>;
+  if (!data) return <div style={{ padding: '24px', height: '100%' }}><SkeletonChart /></div>;
 
   const topStations = [...data.stations].sort((a, b) => b.incidents_raw - a.incidents_raw).slice(0, 5);
   
@@ -45,21 +45,64 @@ export default function CorrelationView() {
         <StatsCard label="P-Value" value={data.correlation_p < 0.001 ? '< 0.001' : data.correlation_p.toFixed(3)} color="var(--accent-blue)" />
       </div>
 
-      <ChartWrapper title="Congestion Correlation Engine" subtitle="Violations (X) vs Incidents (Y) normalized. Dots in top-right are highly congested hotspots.">
-        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-          <XAxis type="number" dataKey="violations_norm" name="Violations" tick={{ fill: 'var(--text-muted)' }} />
-          <YAxis type="number" dataKey="incidents_norm" name="Incidents" tick={{ fill: 'var(--text-muted)' }} />
-          <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-          <ReferenceLine x={0.5} stroke="var(--border)" strokeDasharray="3 3" />
-          <ReferenceLine y={0.5} stroke="var(--border)" strokeDasharray="3 3" />
-          <Scatter name="Stations" data={data.stations} fill="var(--accent-blue)">
-            {data.stations.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={(entry.violations_norm > 0.5 && entry.incidents_norm > 0.5) ? 'var(--accent-rose)' : 'var(--accent-blue)'} />
-            ))}
-          </Scatter>
-        </ScatterChart>
-      </ChartWrapper>
+      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+        <div style={{ flex: 2, minWidth: '400px' }}>
+          <ChartWrapper title="Congestion Correlation Engine" subtitle="Violations (X) vs Incidents (Y) normalized. Click a dot for details.">
+            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis type="number" dataKey="violations_norm" name="Violations" tick={{ fill: 'var(--text-muted)' }} domain={['auto', 'auto']} />
+              <YAxis type="number" dataKey="incidents_norm" name="Incidents" tick={{ fill: 'var(--text-muted)' }} domain={['auto', 'auto']} />
+              <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+              <ReferenceLine x={0.5} stroke="var(--border)" strokeDasharray="3 3" />
+              <ReferenceLine y={0.5} stroke="var(--border)" strokeDasharray="3 3" />
+              <Scatter 
+                name="Stations" 
+                data={data.stations} 
+                fill="var(--accent-blue)"
+                onClick={(e) => setSelectedStation(e && e.payload ? e.payload : e)}
+                style={{ cursor: 'pointer' }}
+              >
+                {data.stations.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={selectedStation?.name === entry.name ? 'var(--accent-amber)' : ((entry.violations_norm > 0.5 && entry.incidents_norm > 0.5) ? 'var(--accent-rose)' : 'var(--accent-blue)')} 
+                  />
+                ))}
+              </Scatter>
+            </ScatterChart>
+          </ChartWrapper>
+        </div>
+        
+        {selectedStation && (
+          <div style={{ flex: 1, minWidth: '300px' }}>
+            <div className="glass-card animate-enter" style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--accent-amber)' }}>{selectedStation.name}</h3>
+                <button onClick={() => setSelectedStation(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>&times;</button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Violations (Raw):</span>
+                  <strong style={{ fontSize: '1.1rem' }}>{selectedStation.violations_raw.toLocaleString()}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Incidents (Raw):</span>
+                  <strong style={{ fontSize: '1.1rem' }}>{selectedStation.incidents_raw.toLocaleString()}</strong>
+                </div>
+                <div style={{ marginTop: '12px' }}>
+                  <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Incident Breakdown</h4>
+                  {Object.entries(selectedStation.incident_breakdown || {}).map(([cause, count]) => (
+                    <div key={cause} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '4px' }}>
+                      <span>{cause}</span>
+                      <strong>{count}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       <ChartWrapper title="Incident Breakdown for Top 5 Incident Hotspots">
         <BarChart data={barData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>

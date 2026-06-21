@@ -5,6 +5,8 @@ import { fetchAPI } from '@/lib/api';
 import ChartWrapper from './ChartWrapper';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { CircleMarker } from 'react-leaflet';
+import SortableTable from './SortableTable';
+import { SkeletonChart } from './LoadingSkeleton';
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false });
 
@@ -15,13 +17,27 @@ export default function JunctionGap() {
     fetchAPI('/api/junction-gap').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px' }}>Loading Junction Gaps...</div>;
+  if (!data) return <div style={{ padding: '24px', height: '100%' }}><SkeletonChart /></div>;
 
   const pieData = [
     { name: 'No Junction', value: data.no_junction.count },
     { name: 'With Junction', value: data.with_junction.count }
   ];
   const COLORS = ['var(--accent-amber)', 'var(--accent-blue)'];
+
+  const columns = [
+    { key: 'name', label: 'Station', render: val => <strong>{val}</strong> },
+    { key: 'no_junction_count', label: 'No Junction Count', render: val => <span style={{ color: 'var(--accent-amber)', fontWeight: 600 }}>{val.toLocaleString()}</span> },
+    { key: 'no_junction_pct', label: 'No Junction %', render: val => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ width: '100px', height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${val}%`, background: 'var(--accent-amber)' }} />
+        </div>
+        <span>{val.toFixed(1)}%</span>
+      </div>
+    )},
+    { key: 'total_violations', label: 'Total Violations', render: val => val.toLocaleString() }
+  ];
 
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -61,35 +77,13 @@ export default function JunctionGap() {
         </div>
       </div>
 
-      <div className="glass-card scrollable-y" style={{ maxHeight: '400px', padding: '16px' }}>
+      <div className="glass-card scrollable-y" style={{ flex: 1, minHeight: '400px', padding: '16px' }}>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Per-Station Breakdown</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Station</th>
-              <th>No Junction Count</th>
-              <th>No Junction %</th>
-              <th>Total Violations</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.by_station.map(s => (
-              <tr key={s.name}>
-                <td><strong>{s.name}</strong></td>
-                <td style={{ color: 'var(--accent-amber)', fontWeight: 600 }}>{s.no_junction_count.toLocaleString()}</td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '100px', height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${s.no_junction_pct}%`, background: 'var(--accent-amber)' }} />
-                    </div>
-                    <span>{s.no_junction_pct.toFixed(1)}%</span>
-                  </div>
-                </td>
-                <td>{s.total_violations.toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <SortableTable 
+          columns={columns} 
+          data={data.by_station} 
+          defaultSortKey="no_junction_pct" 
+        />
       </div>
     </div>
   );

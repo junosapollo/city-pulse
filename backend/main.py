@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
 
 import data_loader
 from features import (
@@ -63,7 +64,8 @@ async def startup_event():
         "date_range": {
             "start": str(data_loader.DATASET_FIRST_DATE),
             "end": str(data_loader.DATASET_LAST_DATE)
-        }
+        },
+        "last_updated": datetime.now().isoformat()
     }
     
     print("Startup complete. Data cached.")
@@ -103,3 +105,20 @@ async def get_offenders():
 @app.get("/api/junction-gap")
 async def get_junction_gap():
     return cache.get('junction_gap', {})
+
+@app.get("/api/command-center")
+async def get_command_center():
+    pressure_data = cache.get('pressure_score', {}).get('stations', [])
+    prediction_data = cache.get('prediction', {}).get('forecast', [])
+    hw_data = cache.get('hardware_health', {}).get('summary', {})
+    offender_data = cache.get('offender', {}).get('summary', {})
+    enforcement_data = cache.get('enforcement_gap', {}).get('per_station', [])
+    
+    return {
+        "top_pressure_stations": pressure_data[:5],
+        "predicted_hotspots": prediction_data[:5],
+        "flagged_devices_count": hw_data.get('flagged_count', 0),
+        "active_offenders_count": offender_data.get('total_repeat', 0),
+        "enforcement_alerts": [s for s in enforcement_data if s.get('divergence_score') is not None][:5],
+        "last_updated": cache.get('overview', {}).get('last_updated', datetime.now().isoformat())
+    }

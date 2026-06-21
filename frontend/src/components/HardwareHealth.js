@@ -3,17 +3,44 @@ import { useState, useEffect } from 'react';
 import { fetchAPI } from '@/lib/api';
 import StatsCard from './StatsCard';
 
+import SortableTable from './SortableTable';
+import { SkeletonTable } from './LoadingSkeleton';
+
 export default function HardwareHealth() {
   const [data, setData] = useState(null);
   const [search, setSearch] = useState('');
+  const [filterTab, setFilterTab] = useState('All');
+  const [page, setPage] = useState(1);
+  const perPage = 50;
 
   useEffect(() => {
     fetchAPI('/api/hardware-health').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px' }}>Loading Hardware Health...</div>;
+  if (!data) return <div style={{ padding: '24px', height: '100%' }}><SkeletonTable rows={15} /></div>;
 
-  const filtered = data.devices.filter(d => d.device_id.toLowerCase().includes(search.toLowerCase()));
+  let filtered = data.devices.filter(d => d.device_id.toLowerCase().includes(search.toLowerCase()));
+  if (filterTab === 'Flagged Only') filtered = filtered.filter(d => d.flagged);
+  if (filterTab === 'Healthy Only') filtered = filtered.filter(d => !d.flagged);
+
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
+  const mappedData = paginated.map(d => ({
+    ...d,
+    approval_pct: d.total > d.unknown ? (d.approved / (d.total - d.unknown)) : -1,
+    rowProps: { style: { borderLeft: d.flagged ? '4px solid var(--accent-rose)' : '4px solid transparent' } }
+  }));
+
+  const columns = [
+    { key: 'device_id', label: 'Device ID', render: val => <span style={{ fontFamily: 'monospace' }}>{val}</span> },
+    { key: 'total', label: 'Total Captures', render: val => val.toLocaleString() },
+    { key: 'approval_pct', label: 'Approval %', render: val => val >= 0 ? (val * 100).toFixed(1) + '%' : '-' },
+    { key: 'rejection_rate', label: 'Rejection %', render: val => <span style={{ color: val > data.thresholds.rejection_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>{val !== null ? (val * 100).toFixed(1) + '%' : '-'}</span> },
+    { key: 'duplicate_rate', label: 'Duplicate %', render: val => <span style={{ color: val > data.thresholds.duplicate_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>{val !== null ? (val * 100).toFixed(1) + '%' : '-'}</span> },
+    { key: 'flagged', label: 'Status', render: val => val ? <span style={{ color: 'var(--accent-rose)' }}>🔴 Flagged</span> : <span style={{ color: 'var(--accent-emerald)' }}>🟢 Healthy</span> },
+    { key: 'flag_reason', label: 'Flag Reason', render: val => <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{val || '-'}</span> }
+  ];
 
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -28,61 +55,41 @@ export default function HardwareHealth() {
       </div>
 
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: '400px' }}>
-        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
           <input 
             type="text" 
             placeholder="Search device ID..." 
             value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ 
-              background: 'rgba(255,255,255,0.05)', 
-              border: '1px solid var(--border)', 
-              color: 'var(--text-primary)', 
-              padding: '8px 16px', 
-              borderRadius: '8px',
-              width: '100%',
-              maxWidth: '300px',
-              outline: 'none'
-            }} 
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            className="filter-input"
+            style={{ flex: 1, maxWidth: '300px' }} 
+          />
+          <div className="filter-tabs">
+            {['All', 'Flagged Only', 'Healthy Only'].map(tab => (
+              <button 
+                key={tab}
+                className={`filter-tab ${filterTab === tab ? 'active' : ''}`}
+                onClick={() => { setFilterTab(tab); setPage(1); }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <SortableTable 
+            columns={columns} 
+            data={mappedData} 
+            defaultSortKey="rejection_rate" 
           />
         </div>
-        <div className="scrollable-y" style={{ flex: 1 }}>
-          <table>
-            <thead style={{ position: 'sticky', top: 0, background: 'var(--card-bg)', zIndex: 1 }}>
-              <tr>
-                <th>Device ID</th>
-                <th>Total Captures</th>
-                <th>Approval %</th>
-                <th>Rejection %</th>
-                <th>Duplicate %</th>
-                <th>Status</th>
-                <th>Flag Reason</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(d => {
-                const isFlagged = d.flagged;
-                return (
-                  <tr key={d.device_id} style={{ borderLeft: isFlagged ? '4px solid var(--accent-rose)' : '4px solid transparent' }}>
-                    <td style={{ fontFamily: 'monospace' }}>{d.device_id}</td>
-                    <td>{d.total.toLocaleString()}</td>
-                    <td>{d.total > d.unknown ? ((d.approved / (d.total - d.unknown)) * 100).toFixed(1) + '%' : '-'}</td>
-                    <td style={{ color: d.rejection_rate > data.thresholds.rejection_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>
-                      {d.rejection_rate !== null ? (d.rejection_rate * 100).toFixed(1) + '%' : '-'}
-                    </td>
-                    <td style={{ color: d.duplicate_rate > data.thresholds.duplicate_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>
-                      {d.duplicate_rate !== null ? (d.duplicate_rate * 100).toFixed(1) + '%' : '-'}
-                    </td>
-                    <td>
-                      {isFlagged ? <span style={{ color: 'var(--accent-rose)' }}>🔴 Flagged</span> : <span style={{ color: 'var(--accent-emerald)' }}>🟢 Healthy</span>}
-                    </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{d.flag_reason || '-'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {totalPages > 1 && (
+          <div className="pagination" style={{ borderTop: '1px solid var(--border)' }}>
+            <button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button>
+            <span className="page-info">Page {page} of {totalPages}</span>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -6,18 +6,23 @@ import StatsCard from './StatsCard';
 import ChartWrapper from './ChartWrapper';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { CircleMarker } from 'react-leaflet';
+import SortableTable from './SortableTable';
+import { SkeletonTable } from './LoadingSkeleton';
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false });
 
 export default function OffenderTracker() {
   const [data, setData] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const perPage = 25;
 
   useEffect(() => {
     fetchAPI('/api/offenders').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px' }}>Loading Offenders...</div>;
+  if (!data) return <div style={{ padding: '24px', height: '100%' }}><SkeletonTable rows={15} /></div>;
 
   const vehicleTypes = data.repeat_offenders.reduce((acc, curr) => {
     acc[curr.vehicle_type] = (acc[curr.vehicle_type] || 0) + 1;
@@ -27,6 +32,17 @@ export default function OffenderTracker() {
   const barData = Object.entries(vehicleTypes)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
+
+  const filtered = data.repeat_offenders.filter(d => d.vehicle_number_masked.toLowerCase().includes(search.toLowerCase()));
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
+  const columns = [
+    { key: 'vehicle_number_masked', label: 'Vehicle No.', render: val => <span style={{ fontFamily: 'monospace', color: 'var(--accent-blue)', fontWeight: 600 }}>{val}</span> },
+    { key: 'count', label: 'Count', render: val => <span style={{ color: 'var(--accent-rose)', fontWeight: 600 }}>{val}</span> },
+    { key: 'vehicle_type', label: 'Type' },
+    { key: 'top_station', label: 'Top Station' }
+  ];
 
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -39,46 +55,45 @@ export default function OffenderTracker() {
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
         <div style={{ flex: 2, minWidth: '400px' }}>
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '600px' }}>
-            <div className="scrollable-y" style={{ flex: 1 }}>
-              <table>
-                <thead style={{ position: 'sticky', top: 0, background: 'var(--card-bg)', zIndex: 1 }}>
-                  <tr>
-                    <th>Vehicle No.</th>
-                    <th>Count</th>
-                    <th>Type</th>
-                    <th>Top Station</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.repeat_offenders.map(d => (
-                    <React.Fragment key={d.vehicle_number_masked}>
-                      <tr 
-                        onClick={() => setExpandedId(expandedId === d.vehicle_number_masked ? null : d.vehicle_number_masked)}
-                        style={{ cursor: 'pointer', background: expandedId === d.vehicle_number_masked ? 'rgba(255,255,255,0.05)' : 'transparent' }}
-                      >
-                        <td style={{ fontFamily: 'monospace', color: 'var(--accent-blue)', fontWeight: 600 }}>{d.vehicle_number_masked}</td>
-                        <td style={{ color: 'var(--accent-rose)', fontWeight: 600 }}>{d.count}</td>
-                        <td>{d.vehicle_type}</td>
-                        <td>{d.top_station}</td>
-                      </tr>
-                      {expandedId === d.vehicle_number_masked && (
-                        <tr>
-                          <td colSpan={4} style={{ padding: 0 }}>
-                            <div style={{ height: '300px', width: '100%' }}>
-                              <MapView center={d.locations[0] ? [d.locations[0].lat, d.locations[0].lng] : undefined} zoom={12}>
-                                {d.locations.map((loc, i) => (
-                                  <CircleMarker key={i} center={[loc.lat, loc.lng]} radius={4} pathOptions={{ fillColor: 'var(--accent-rose)', fillOpacity: 0.8, color: '#fff', weight: 1 }} />
-                                ))}
-                              </MapView>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+              <input 
+                type="text" 
+                placeholder="Search vehicle number..." 
+                value={search}
+                onChange={e => { setSearch(e.target.value); setPage(1); setExpandedId(null); }}
+                className="filter-input"
+                style={{ width: '100%', maxWidth: '300px' }} 
+              />
             </div>
+            <div className="scrollable-y" style={{ flex: 1 }}>
+              <SortableTable 
+                columns={columns} 
+                data={paginated} 
+                defaultSortKey="count"
+                rowIdKey="vehicle_number_masked"
+                expandedRowId={expandedId}
+                onRowClick={(row) => setExpandedId(expandedId === row.vehicle_number_masked ? null : row.vehicle_number_masked)}
+                renderExpandedRow={(row) => (
+                  <div style={{ height: '300px', width: '100%', padding: '16px', background: 'var(--bg)' }}>
+                    <h4 style={{ marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Locations mapping for {row.vehicle_number_masked}</h4>
+                    <div style={{ height: 'calc(100% - 28px)', borderRadius: '8px', overflow: 'hidden' }}>
+                      <MapView center={row.locations[0] ? [row.locations[0].lat, row.locations[0].lng] : undefined} zoom={12}>
+                        {row.locations.map((loc, i) => (
+                          <CircleMarker key={i} center={[loc.lat, loc.lng]} radius={4} pathOptions={{ fillColor: 'var(--accent-rose)', fillOpacity: 0.8, color: '#fff', weight: 1 }} />
+                        ))}
+                      </MapView>
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
+            {totalPages > 1 && (
+              <div className="pagination" style={{ borderTop: '1px solid var(--border)' }}>
+                <button disabled={page === 1} onClick={() => { setPage(page - 1); setExpandedId(null); }}>Previous</button>
+                <span className="page-info">Page {page} of {totalPages}</span>
+                <button disabled={page === totalPages} onClick={() => { setPage(page + 1); setExpandedId(null); }}>Next</button>
+              </div>
+            )}
           </div>
         </div>
 
