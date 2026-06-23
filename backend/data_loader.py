@@ -7,8 +7,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _DATASET_DIR = _PROJECT_ROOT / "dataset"
 
 # Glob-match on stable prefix
-_events_csv = glob.glob(str(_DATASET_DIR / "*Astram*.csv"))
-_violations_csv = glob.glob(str(_DATASET_DIR / "*violation*.csv"))
+_events_csv = glob.glob(str(_DATASET_DIR / "*Astram*.csv*"))
+_violations_csv = glob.glob(str(_DATASET_DIR / "*violation*.csv*"))
 
 assert len(_events_csv) == 1, f"Expected 1 Astram CSV, found {len(_events_csv)}: {_events_csv}"
 assert len(_violations_csv) == 1, f"Expected 1 violation CSV, found {len(_violations_csv)}: {_violations_csv}"
