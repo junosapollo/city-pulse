@@ -1,13 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import Sidebar from '@/components/Sidebar';
-import StatsCard from '@/components/StatsCard';
+import AppShell from '@/components/AppShell';
+import DashboardHeader from '@/components/DashboardHeader';
+import MetricStrip from '@/components/MetricStrip';
 import { fetchAPI } from '@/lib/api';
 import CommandCenter from '@/components/CommandCenter';
 
 const LoadingFallback = () => (
-  <div style={{ padding: '24px', height: '100%' }}>
+  <div style={{ padding: 'var(--content-pad)', height: '100%' }}>
     <div className="skeleton skeleton-map"></div>
   </div>
 );
@@ -24,13 +25,21 @@ const JunctionGap = dynamic(() => import('@/components/JunctionGap'), { ssr: fal
 export default function Dashboard() {
   const [activeFeature, setActiveFeature] = useState('command_center');
   const [overview, setOverview] = useState(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [alerts, setAlerts] = useState({});
 
   useEffect(() => {
     fetchAPI('/api/overview').then(setOverview).catch(console.error);
+    fetchAPI('/api/command-center').then(data => {
+      if (data) {
+        setAlerts({
+          hardware_health: data.flagged_devices_count > 0,
+          offender: data.active_offenders_count > 0,
+          pressure_score: data.top_pressure_stations && data.top_pressure_stations.some(s => s.pressure_score > 0.7)
+        });
+      }
+    }).catch(console.error);
     
     const handleKeyDown = (e) => {
-      // Don't trigger if user is typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       
       const keyMap = {
@@ -65,40 +74,23 @@ export default function Dashboard() {
       case 'hardware_health': return <HardwareHealth />;
       case 'offender': return <OffenderTracker />;
       case 'junction_gap': return <JunctionGap />;
-      default: return <HotspotMap />;
+      default: return <CommandCenter setActiveFeature={setActiveFeature} />;
     }
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <Sidebar 
-        activeFeature={activeFeature} 
-        setActiveFeature={setActiveFeature} 
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-      />
+    <AppShell activeFeature={activeFeature} setActiveFeature={setActiveFeature} alerts={alerts}>
+      <DashboardHeader activeFeature={activeFeature} overview={overview} />
       
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', transition: 'margin 0.3s ease' }}>
-        {overview ? (
-          <div className="scrollable-y" style={{ padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '16px', overflowX: 'auto', flexShrink: 0 }}>
-            <StatsCard label="Total Violations" value={overview.total_violations.toLocaleString()} />
-            <StatsCard label="Total Events" value={overview.total_events.toLocaleString()} color="var(--accent-amber)" />
-            <StatsCard label="Active Stations" value={overview.total_stations} color="var(--accent-emerald)" />
-            <StatsCard label="Parking %" value={`${overview.parking_pct.toFixed(1)}%`} color="var(--accent-rose)" />
-            <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '200px' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date Range</span>
-              <strong style={{ color: 'var(--text-primary)' }}>{overview.date_range.start}</strong>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>to {overview.date_range.end}</span>
-            </div>
-          </div>
-        ) : (
-          <div style={{ padding: '24px', borderBottom: '1px solid var(--border)' }}>Loading dashboard overview...</div>
-        )}
-        
-        <div key={activeFeature} className="feature-view" style={{ flex: 1, overflow: 'hidden' }}>
-          {renderFeature()}
+      {activeFeature === 'command_center' && (
+        <div style={{ marginBottom: '24px' }}>
+          <MetricStrip overview={overview} />
         </div>
-      </main>
-    </div>
+      )}
+      
+      <div key={activeFeature} className="feature-view" style={{ flex: 1, padding: '0 var(--content-pad) var(--content-pad)' }}>
+        {renderFeature()}
+      </div>
+    </AppShell>
   );
 }

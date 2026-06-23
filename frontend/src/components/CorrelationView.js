@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { fetchAPI } from '@/lib/api';
 import ChartWrapper from './ChartWrapper';
 import StatsCard from './StatsCard';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, BarChart, Bar, Legend, Cell, LabelList } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, BarChart, Bar, Legend, Cell } from 'recharts';
 import { SkeletonChart } from './LoadingSkeleton';
+import { Link2, ShieldCheck, X } from 'lucide-react';
+
 export default function CorrelationView() {
   const [data, setData] = useState(null);
   const [selectedStation, setSelectedStation] = useState(null);
@@ -13,7 +15,7 @@ export default function CorrelationView() {
     fetchAPI('/api/correlation').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px', height: '100%' }}><SkeletonChart /></div>;
+  if (!data) return <div style={{ height: '100%' }}><SkeletonChart /></div>;
 
   const topStations = [...data.stations].sort((a, b) => b.incidents_raw - a.incidents_raw).slice(0, 5);
   
@@ -23,16 +25,16 @@ export default function CorrelationView() {
   }));
   
   const causeKeys = Array.from(new Set(topStations.flatMap(s => Object.keys(s.incident_breakdown))));
-  const colors = ['#3b82f6', '#f59e0b', '#10b981', '#f43f5e', '#8b5cf6', '#06b6d4'];
+  const colors = ['var(--blue)', 'var(--amber)', 'var(--green)', 'var(--rose)', 'var(--violet)', '#0ea5e9'];
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const d = payload[0].payload;
       return (
-        <div className="glass-card" style={{ padding: '12px' }}>
-          <strong>{d.name}</strong><br/>
-          Violations: {d.violations_raw}<br/>
-          Incidents: {d.incidents_raw}
+        <div className="surface-card no-hover" style={{ padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+          <strong style={{ display: 'block', marginBottom: '8px', color: 'var(--text)' }}>{d.name}</strong>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>Violations: <span style={{ color: 'var(--text)', fontWeight: 600 }}>{d.violations_raw}</span></div>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Incidents: <span style={{ color: 'var(--text)', fontWeight: 600 }}>{d.incidents_raw}</span></div>
         </div>
       );
     }
@@ -40,33 +42,33 @@ export default function CorrelationView() {
   };
 
   return (
-    <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="scrollable-y" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-        <StatsCard label="Link Strength" value={data.correlation_r.toFixed(3)} color="var(--accent-amber)" />
-        <StatsCard label="Data Reliability" value={data.correlation_p < 0.001 ? '< 0.001' : data.correlation_p.toFixed(3)} color="var(--accent-blue)" />
+        <StatsCard label="Link Strength" icon={<Link2 size={16} />} value={data.correlation_r.toFixed(3)} color="var(--amber)" />
+        <StatsCard label="Data Reliability" icon={<ShieldCheck size={16} />} value={data.correlation_p < 0.001 ? '< 0.001' : data.correlation_p.toFixed(3)} color="var(--blue)" />
       </div>
 
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
         <div style={{ flex: 2, minWidth: '400px' }}>
-          <ChartWrapper title="Traffic & Parking Issues" subtitle="Fines vs Incidents. Click a dot for details.">
+          <ChartWrapper title="Traffic & Parking Issues" subtitle="Fines vs Incidents. Click a dot for details." minChartWidth={640}>
             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis type="number" dataKey="violations_norm" name="Violations" tick={{ fill: 'var(--text-muted)' }} domain={['auto', 'auto']} />
-              <YAxis type="number" dataKey="incidents_norm" name="Incidents" tick={{ fill: 'var(--text-muted)' }} domain={['auto', 'auto']} />
-              <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-              <ReferenceLine x={0.5} stroke="var(--border)" strokeDasharray="3 3" />
-              <ReferenceLine y={0.5} stroke="var(--border)" strokeDasharray="3 3" />
+              <XAxis type="number" dataKey="violations_norm" name="Violations" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} domain={['auto', 'auto']} />
+              <YAxis type="number" dataKey="incidents_norm" name="Incidents" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} domain={['auto', 'auto']} />
+              <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--border-strong)' }} />
+              <ReferenceLine x={0.5} stroke="var(--border-strong)" strokeDasharray="3 3" />
+              <ReferenceLine y={0.5} stroke="var(--border-strong)" strokeDasharray="3 3" />
               <Scatter 
                 name="Stations" 
                 data={data.stations} 
-                fill="var(--accent-blue)"
+                fill="var(--blue)"
                 onClick={(e) => setSelectedStation(e && e.payload ? e.payload : e)}
                 style={{ cursor: 'pointer' }}
               >
                 {data.stations.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={selectedStation?.name === entry.name ? 'var(--accent-amber)' : ((entry.violations_norm > 0.5 && entry.incidents_norm > 0.5) ? 'var(--accent-rose)' : 'var(--accent-blue)')} 
+                    fill={selectedStation?.name === entry.name ? 'var(--amber)' : ((entry.violations_norm > 0.5 && entry.incidents_norm > 0.5) ? 'var(--rose)' : 'var(--blue)')} 
                   />
                 ))}
               </Scatter>
@@ -76,26 +78,28 @@ export default function CorrelationView() {
         
         {selectedStation && (
           <div style={{ flex: 1, minWidth: '300px' }}>
-            <div className="glass-card animate-enter" style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="surface-card animate-enter" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--accent-amber)' }}>{selectedStation.name}</h3>
-                <button onClick={() => setSelectedStation(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>&times;</button>
+                <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--amber)' }}>{selectedStation.name}</h3>
+                <button onClick={() => setSelectedStation(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
+                  <X size={20} />
+                </button>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Violations (Raw):</span>
-                  <strong style={{ fontSize: '1.1rem' }}>{selectedStation.violations_raw.toLocaleString()}</strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Violations (Raw):</span>
+                  <strong style={{ fontSize: '18px' }} className="tabular-nums">{selectedStation.violations_raw.toLocaleString()}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Incidents (Raw):</span>
-                  <strong style={{ fontSize: '1.1rem' }}>{selectedStation.incidents_raw.toLocaleString()}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Incidents (Raw):</span>
+                  <strong style={{ fontSize: '18px' }} className="tabular-nums">{selectedStation.incidents_raw.toLocaleString()}</strong>
                 </div>
-                <div style={{ marginTop: '12px' }}>
-                  <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Incident Breakdown</h4>
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+                  <h4 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px', fontWeight: 600, letterSpacing: '0.05em' }}>Incident Breakdown</h4>
                   {Object.entries(selectedStation.incident_breakdown || {}).map(([cause, count]) => (
-                    <div key={cause} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '4px' }}>
+                    <div key={cause} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px', color: 'var(--text)' }}>
                       <span>{cause}</span>
-                      <strong>{count}</strong>
+                      <strong className="tabular-nums">{count}</strong>
                     </div>
                   ))}
                 </div>
@@ -105,15 +109,19 @@ export default function CorrelationView() {
         )}
       </div>
 
-      <ChartWrapper title="Incident Details for Top 5 Areas">
-        <BarChart data={barData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+      <ChartWrapper title="Incident Details for Top 5 Areas" minChartWidth={760}>
+        <BarChart data={barData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }} barSize={32}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)' }} />
-          <YAxis tick={{ fill: 'var(--text-muted)' }} />
-          <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px' }} />
-          <Legend />
+          <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
+          <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
+          <Tooltip 
+            contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }} 
+            itemStyle={{ color: 'var(--text)', fontSize: '13px' }}
+            labelStyle={{ color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}
+          />
+          <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '13px' }} iconType="circle" />
           {causeKeys.map((k, i) => (
-            <Bar key={k} dataKey={k} stackId="a" fill={colors[i % colors.length]} />
+            <Bar key={k} dataKey={k} stackId="a" fill={colors[i % colors.length]} radius={i === causeKeys.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
           ))}
         </BarChart>
       </ChartWrapper>

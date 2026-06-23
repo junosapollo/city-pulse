@@ -1,42 +1,68 @@
 'use client';
 import { useState, useEffect } from 'react';
 
+function getNumericMeta(value) {
+  if (typeof value === 'number') {
+    const decimals = Number.isInteger(value) ? 0 : 3;
+    return { num: value, decimals, suffix: '' };
+  }
+
+  const strVal = String(value).trim();
+  const match = strVal.match(/^(-?[\d,]+(?:\.\d+)?)(%)?$/);
+  if (!match) return null;
+
+  const numericPart = match[1];
+  return {
+    num: parseFloat(numericPart.replace(/,/g, '')),
+    decimals: numericPart.includes('.') ? numericPart.split('.')[1].length : 0,
+    suffix: match[2] || ''
+  };
+}
+
+function formatNumeric(num, meta) {
+  const formatted = meta.decimals === 0
+    ? Math.round(num).toLocaleString()
+    : num.toLocaleString(undefined, {
+        minimumFractionDigits: meta.decimals,
+        maximumFractionDigits: meta.decimals
+      });
+  return `${formatted}${meta.suffix}`;
+}
+
 function AnimatedNumber({ value }) {
   const [displayValue, setDisplayValue] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
 
   useEffect(() => {
-    const strVal = String(value);
-    const numericMatch = strVal.match(/[\d.,]+/);
-    
-    if (!numericMatch) {
+    const meta = getNumericMeta(value);
+    if (!meta || isNaN(meta.num)) {
+      setIsAnimating(false);
+      return;
+    }
+
+    // Check for reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
       setIsAnimating(false);
       return;
     }
     
-    const numStr = numericMatch[0].replace(/,/g, '');
-    const num = parseFloat(numStr);
-    
-    if (isNaN(num)) {
-      setIsAnimating(false);
-      return;
-    }
-    
-    const duration = 1000;
+    setIsAnimating(true);
+    const duration = 700; // Finish within 700ms
     const startTime = performance.now();
     
     const animate = (currentTime) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 4);
-      const current = num * ease;
+      const current = meta.num * ease;
       
       setDisplayValue(current);
       
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        setDisplayValue(num);
+        setDisplayValue(meta.num);
         setIsAnimating(false);
       }
     };
@@ -44,43 +70,40 @@ function AnimatedNumber({ value }) {
     requestAnimationFrame(animate);
   }, [value]);
 
-  const strVal = String(value);
-  const numericMatch = strVal.match(/[\d.,]+/);
-  if (!numericMatch || !isAnimating) return value;
-  
-  const isInt = !strVal.includes('.');
-  const formattedNum = isInt ? Math.round(displayValue).toLocaleString() : displayValue.toFixed(1);
-  return strVal.replace(/[\d.,]+/, formattedNum);
+  const meta = getNumericMeta(value);
+  if (!meta || isNaN(meta.num)) return value;
+  return formatNumeric(isAnimating ? displayValue : meta.num, meta);
 }
 
-export default function StatsCard({ label, value, icon, color = 'var(--accent-blue)', trend }) {
+export default function StatsCard({ label, value, icon, color = 'var(--blue)', trend, className = '' }) {
   return (
-    <div className="glass-card animate-enter" style={{ 
-      padding: '20px', 
+    <div className={`surface-card animate-enter ${className}`} style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       gap: '8px',
       borderLeft: `4px solid ${color}`,
-      minWidth: '200px',
-      flex: 1
+      padding: '16px 20px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
-        {icon && <span style={{ fontSize: '1.2rem', color }}>{icon}</span>}
-        <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+        {icon && <span style={{ color }}>{icon}</span>}
+        <span className="card-label">{label}</span>
       </div>
-      <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-        <span className="stat-value"><AnimatedNumber value={value} /></span>
+      <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'baseline', gap: '12px', marginTop: '4px' }}>
+        <span className="tabular-nums"><AnimatedNumber value={value} /></span>
         {trend && (
           <span style={{ 
-            fontSize: '0.85rem', 
+            fontSize: '13px', 
             fontWeight: 600, 
-            color: trend.direction === 'up' ? 'var(--accent-emerald)' : 'var(--accent-rose)',
+            color: trend.direction === 'up' ? 'var(--green)' : 'var(--rose)',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '4px',
+            background: trend.direction === 'up' ? '#ecfdf5' : '#fff1f2',
+            padding: '2px 6px',
+            borderRadius: '6px'
           }}>
             {trend.direction === 'up' ? '↑' : '↓'} {trend.value}
-            {trend.label && <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: '4px' }}>{trend.label}</span>}
+            {trend.label && <span style={{ color: 'var(--text-muted)', fontWeight: 500, marginLeft: '2px' }}>{trend.label}</span>}
           </span>
         )}
       </div>

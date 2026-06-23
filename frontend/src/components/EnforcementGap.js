@@ -15,7 +15,7 @@ export default function EnforcementGap() {
     fetchAPI('/api/enforcement-gap').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px', height: '100%' }}><SkeletonChart /></div>;
+  if (!data) return <div style={{ height: '100%' }}><SkeletonChart /></div>;
 
   const isCityWide = selectedStation === 'City-Wide';
   const stationData = isCityWide 
@@ -38,7 +38,7 @@ export default function EnforcementGap() {
       label: 'Uneven Ticketing Score',
       render: (val) => {
         const isNull = val === null;
-        const color = isNull ? 'var(--text-muted)' : val > 0.5 ? 'var(--accent-rose)' : val > 0.3 ? 'var(--accent-amber)' : 'var(--accent-emerald)';
+        const color = isNull ? 'var(--text-muted)' : val > 0.5 ? 'var(--rose)' : val > 0.3 ? 'var(--amber)' : 'var(--green)';
         return <span style={{ color, fontWeight: 600 }}>{isNull ? 'Insufficient Data' : val.toFixed(3)}</span>;
       }
     },
@@ -53,7 +53,7 @@ export default function EnforcementGap() {
   }));
 
   return (
-    <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="scrollable-y" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <ChartWrapper 
         title={`${isCityWide ? 'City-Wide' : selectedStation} Fines vs Incidents by Hour`} 
         subtitle="Shaded areas show amount. Dashed line shows accidents (city-wide)."
@@ -62,6 +62,16 @@ export default function EnforcementGap() {
             className="filter-input" 
             value={selectedStation} 
             onChange={e => setSelectedStation(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              background: 'var(--surface)',
+              color: 'var(--text)',
+              fontSize: '14px',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
           >
             <option value="City-Wide">City-Wide</option>
             {data.per_station.map(s => (
@@ -69,23 +79,24 @@ export default function EnforcementGap() {
             ))}
           </select>
         }
+        minChartWidth={640}
       >
         <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis dataKey="hour" tick={{ fill: 'var(--text-muted)' }} />
-          <YAxis yAxisId="left" tick={{ fill: 'var(--accent-blue)' }} />
-          <YAxis yAxisId="right" orientation="right" tick={{ fill: 'var(--accent-rose)' }} />
-          <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px' }} />
-          <Legend />
-          <Area yAxisId="left" type="monotone" dataKey="violations" name="Violations" fill="var(--accent-blue)" stroke="var(--accent-blue)" fillOpacity={0.3} />
-          <Area yAxisId="right" type="monotone" dataKey="incidents" name="Incidents" fill="var(--accent-rose)" stroke="var(--accent-rose)" fillOpacity={0.3} />
-          <Line yAxisId="right" type="monotone" dataKey="accidents" name="Accidents" stroke="var(--accent-amber)" strokeDasharray="5 5" dot={false} strokeWidth={2} />
+          <XAxis dataKey="hour" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
+          <YAxis yAxisId="left" tick={{ fill: 'var(--blue)', fontSize: 12 }} axisLine={false} tickLine={false} />
+          <YAxis yAxisId="right" orientation="right" tick={{ fill: 'var(--rose)', fontSize: 12 }} axisLine={false} tickLine={false} />
+          <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }} />
+          <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+          <Area yAxisId="left" type="monotone" dataKey="violations" name="Violations" fill="var(--surface-tint)" stroke="var(--blue)" fillOpacity={0.6} strokeWidth={2} />
+          <Area yAxisId="right" type="monotone" dataKey="incidents" name="Incidents" fill="#fff1f2" stroke="var(--rose)" fillOpacity={0.6} strokeWidth={2} />
+          <Line yAxisId="right" type="monotone" dataKey="accidents" name="Accidents" stroke="var(--amber)" strokeDasharray="5 5" dot={false} strokeWidth={2} />
         </ComposedChart>
       </ChartWrapper>
 
-      <div className="glass-card" style={{ padding: '24px' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Uneven Ticketing Score per Station</h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Click a row to view the station's chart above.</p>
+      <div className="surface-card">
+        <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '4px', color: 'var(--text)' }}>Uneven Ticketing Score per Station</h3>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px' }}>Click a row to view the station's chart above.</p>
         <div onClick={(e) => {
           const tr = e.target.closest('tr');
           if (tr && tr.dataset.station) {

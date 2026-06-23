@@ -4,6 +4,8 @@ import { fetchAPI } from '@/lib/api';
 import ChartWrapper from './ChartWrapper';
 import StatsCard from './StatsCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { TrendingUp, TrendingDown } from 'lucide-react';
+import { SkeletonChart } from './LoadingSkeleton';
 
 export default function PressureScore() {
   const [data, setData] = useState(null);
@@ -13,7 +15,7 @@ export default function PressureScore() {
     fetchAPI('/api/pressure-score').then(setData).catch(console.error);
   }, []);
 
-  if (!data) return <div style={{ padding: '24px', height: '100%' }}><div className="skeleton skeleton-chart"></div></div>;
+  if (!data) return <div style={{ height: '100%' }}><SkeletonChart /></div>;
 
   const displayStations = showAll ? data.stations : data.stations.slice(0, 15);
 
@@ -36,10 +38,10 @@ export default function PressureScore() {
   const worstStation = data.stations[0];
 
   return (
-    <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="scrollable-y" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-        <StatsCard label={`Most Difficult: ${worstStation.name}`} value={worstStation.score.toFixed(3)} color="var(--accent-rose)" />
-        <StatsCard label={`Easiest Parking: ${bestStation.name}`} value={bestStation.score.toFixed(3)} color="var(--accent-emerald)" />
+        <StatsCard label={`Most Difficult: ${worstStation.name}`} icon={<TrendingUp size={16} />} value={worstStation.score.toFixed(3)} color="var(--rose)" />
+        <StatsCard label={`Easiest Parking: ${bestStation.name}`} icon={<TrendingDown size={16} />} value={bestStation.score.toFixed(3)} color="var(--green)" />
       </div>
 
       <ChartWrapper 
@@ -49,28 +51,46 @@ export default function PressureScore() {
         extra={
           <button
             onClick={() => setShowAll(!showAll)}
-            style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem' }}
+            className="btn-secondary"
+            style={{
+              padding: '6px 12px',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--text)',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 500
+            }}
           >
             {showAll ? 'Show Top 15' : 'Show All'}
           </button>
         }
+        minChartWidth={760}
       >
         <BarChart data={chartData} layout="vertical" margin={{ top: 20, right: 20, bottom: 20, left: 100 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-          <XAxis type="number" domain={[0, 1]} tick={{ fill: 'var(--text-muted)' }} />
-          <YAxis dataKey="name" type="category" tick={{ fill: 'var(--text-muted)', fontSize: '0.8rem' }} interval={0} width={100} />
-          <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px' }} />
-          <Legend />
-          <Bar dataKey="Total Fines (40%)" stackId="a" fill="var(--accent-blue)" />
-          <Bar dataKey="Repeat Offenders (20%)" stackId="a" fill="var(--accent-amber)" />
-          <Bar dataKey="Timing Differences (20%)" stackId="a" fill="#8b5cf6" />
-          <Bar dataKey="Camera Blind Spots (20%)" stackId="a" fill="var(--accent-rose)" />
+          <XAxis type="number" domain={[0, 1]} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
+          <YAxis dataKey="name" type="category" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} interval={0} width={100} />
+          <Tooltip 
+            contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }} 
+            itemStyle={{ color: 'var(--text)', fontSize: '13px' }}
+            labelStyle={{ color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600 }}
+          />
+          <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '13px' }} iconType="circle" />
+          <Bar dataKey="Total Fines (40%)" stackId="a" fill="var(--blue)" />
+          <Bar dataKey="Repeat Offenders (20%)" stackId="a" fill="var(--amber)" />
+          <Bar dataKey="Timing Differences (20%)" stackId="a" fill="var(--violet)" />
+          <Bar dataKey="Camera Blind Spots (20%)" stackId="a" fill="var(--rose)" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ChartWrapper>
 
-      <div className="glass-card" style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-        <strong>Note:</strong> Repeat offender ratio = vehicles with ≥5 violations at this specific station / total vehicles at this station.<br/>
-        Weights (40/20/20/20) are configurable policy parameters, not statistically derived.
+      <div className="surface-card no-hover" style={{ padding: '16px 20px', fontSize: '13px', color: 'var(--text-muted)', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <strong style={{ color: 'var(--text)', fontWeight: 600 }}>Note:</strong> 
+        <div>
+          Repeat offender ratio = vehicles with ≥5 violations at this specific station / total vehicles at this station.<br/>
+          Weights (40/20/20/20) are configurable policy parameters, not statistically derived.
+        </div>
       </div>
     </div>
   );
