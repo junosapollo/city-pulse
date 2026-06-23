@@ -23,7 +23,7 @@ export default function HotspotMap() {
     <div style={{ display: 'flex', gap: '24px', height: '100%', padding: '24px' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Spatial Hotspot Heatmap</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>High-Traffic Areas Map</h2>
           <div style={{ display: 'flex', background: 'var(--card-bg)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}>
             <button 
               onClick={() => setView('station')}
@@ -105,7 +105,7 @@ export default function HotspotMap() {
         ) : null}
         
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Top Hotspots</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Top High-Traffic Areas</h3>
           {data.stations.slice(0, 10).map((s, i) => (
             <div 
               key={s.name} 

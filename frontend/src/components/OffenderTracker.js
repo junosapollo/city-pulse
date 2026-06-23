@@ -47,7 +47,7 @@ export default function OffenderTracker() {
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-        <StatsCard label="Vehicles with 5+ violations city-wide" value={data.summary.total_repeat.toLocaleString()} color="var(--accent-rose)" />
+        <StatsCard label="Vehicles caught 5+ times" value={data.summary.total_repeat.toLocaleString()} color="var(--accent-rose)" />
         <StatsCard label="% of Unique Vehicles" value={`${data.summary.pct_of_vehicles.toFixed(1)}%`} />
         <StatsCard label="% of Total Violations" value={`${data.summary.pct_of_violations.toFixed(1)}%`} />
       </div>
@@ -98,7 +98,7 @@ export default function OffenderTracker() {
         </div>
 
         <div style={{ flex: 1, minWidth: '300px' }}>
-          <ChartWrapper title="Vehicle Type Distribution" subtitle="Among chronic offenders.">
+          <ChartWrapper title="Vehicle Type Distribution" subtitle="Among repeat offenders.">
             <BarChart data={barData} layout="vertical" margin={{ top: 20, right: 20, bottom: 20, left: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
               <XAxis type="number" tick={{ fill: 'var(--text-muted)' }} />

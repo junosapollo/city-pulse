@@ -24,10 +24,10 @@ export default function PressureScore() {
 
     return {
       name: s.name,
-      'Violation Volume (40%)': s.violations_norm * 0.4,
+      'Total Fines (40%)': s.violations_norm * 0.4,
       'Repeat Offenders (20%)': s.repeat_offender_ratio * 0.2,
-      'Timing Divergence (20%)': s.timing_divergence * 0.2,
-      'Device Gaps (20%)': d_gap * 0.2,
+      'Timing Differences (20%)': s.timing_divergence * 0.2,
+      'Camera Blind Spots (20%)': d_gap * 0.2,
       total: s.score
     };
   });
@@ -38,13 +38,13 @@ export default function PressureScore() {
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-        <StatsCard label={`Most Pressured: ${worstStation.name}`} value={worstStation.score.toFixed(3)} color="var(--accent-rose)" />
-        <StatsCard label={`Best Managed: ${bestStation.name}`} value={bestStation.score.toFixed(3)} color="var(--accent-emerald)" />
+        <StatsCard label={`Most Difficult: ${worstStation.name}`} value={worstStation.score.toFixed(3)} color="var(--accent-rose)" />
+        <StatsCard label={`Easiest Parking: ${bestStation.name}`} value={bestStation.score.toFixed(3)} color="var(--accent-emerald)" />
       </div>
 
       <ChartWrapper 
-        title="Parking Pressure Score by Station" 
-        subtitle="Composite score representing stress on the parking enforcement system."
+        title="Parking Difficulty by Area" 
+        subtitle="Overall score showing how difficult parking is in each area."
         height={showAll ? Math.max(500, displayStations.length * 25) : 500}
         extra={
           <button
@@ -61,10 +61,10 @@ export default function PressureScore() {
           <YAxis dataKey="name" type="category" tick={{ fill: 'var(--text-muted)', fontSize: '0.8rem' }} interval={0} width={100} />
           <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px' }} />
           <Legend />
-          <Bar dataKey="Violation Volume (40%)" stackId="a" fill="var(--accent-blue)" />
+          <Bar dataKey="Total Fines (40%)" stackId="a" fill="var(--accent-blue)" />
           <Bar dataKey="Repeat Offenders (20%)" stackId="a" fill="var(--accent-amber)" />
-          <Bar dataKey="Timing Divergence (20%)" stackId="a" fill="#8b5cf6" />
-          <Bar dataKey="Device Gaps (20%)" stackId="a" fill="var(--accent-rose)" />
+          <Bar dataKey="Timing Differences (20%)" stackId="a" fill="#8b5cf6" />
+          <Bar dataKey="Camera Blind Spots (20%)" stackId="a" fill="var(--accent-rose)" />
         </BarChart>
       </ChartWrapper>
 

@@ -41,7 +41,7 @@ export default function CommandCenter({ setActiveFeature }) {
           <h2 style={{ fontSize: '1.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ fontSize: '2rem' }}>🎯</span> Command Center
           </h2>
-          <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>System health and critical operational alerts</p>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>System status and important alerts</p>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Last Data Sync</div>
@@ -55,51 +55,51 @@ export default function CommandCenter({ setActiveFeature }) {
       <div className="kpi-grid">
         <div className="glass-card alert-card" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setActiveFeature('hardware_health')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Hardware Health</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Camera Status</div>
             {data.flagged_devices_count > 0 && <div className="pulse-dot"></div>}
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 700, margin: '12px 0 4px', color: 'var(--text-primary)' }}>
             {data.flagged_devices_count}
           </div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Flagged cameras require attention</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cameras that need fixing</div>
         </div>
 
         <div className="glass-card alert-card warning" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setActiveFeature('offender')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Chronic Offenders</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Repeat Offenders</div>
             {data.active_offenders_count > 0 && <div className="pulse-dot" style={{ background: 'var(--accent-amber)' }}></div>}
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 700, margin: '12px 0 4px', color: 'var(--text-primary)' }}>
             {data.active_offenders_count.toLocaleString()}
           </div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Vehicles with 5+ violations</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Vehicles caught 5 or more times</div>
         </div>
 
         <div className="glass-card alert-card warning" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setActiveFeature('pressure_score')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Critical Pressure</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>High Parking Difficulty</div>
             {data.top_pressure_stations.length > 0 && <div className="pulse-dot" style={{ background: 'var(--accent-amber)' }}></div>}
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 700, margin: '12px 0 4px', color: 'var(--text-primary)' }}>
             {data.top_pressure_stations.filter(s => s.score > 0.7).length}
           </div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Stations with score &gt; 0.70</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Areas with high parking difficulty</div>
         </div>
 
         <div className="glass-card alert-card" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setActiveFeature('prediction')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Tomorrow's Forecast</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Tomorrow's Predictions</div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 700, margin: '12px 0 4px', color: 'var(--text-primary)' }}>
             {data.predicted_hotspots.filter(h => h.predicted_violations > 1000).length}
           </div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Stations predicted &gt; 1k violations</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Areas predicting many violations</div>
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
         <div className="glass-card" style={{ flex: 1, minWidth: '300px', padding: '20px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Top Pressure Stations</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Most Difficult Parking Areas</h3>
           <table style={{ margin: 0 }}>
             <tbody>
               {data.top_pressure_stations.slice(0, 5).map(s => (
@@ -115,7 +115,7 @@ export default function CommandCenter({ setActiveFeature }) {
         </div>
 
         <div className="glass-card" style={{ flex: 1, minWidth: '300px', padding: '20px' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Enforcement Divergence Alerts</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Uneven Ticketing Alerts</h3>
           <table style={{ margin: 0 }}>
             <tbody>
               {data.enforcement_alerts.slice(0, 5).map(s => (

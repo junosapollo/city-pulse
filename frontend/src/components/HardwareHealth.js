@@ -35,9 +35,9 @@ export default function HardwareHealth() {
   const columns = [
     { key: 'device_id', label: 'Device ID', render: val => <span style={{ fontFamily: 'monospace' }}>{val}</span> },
     { key: 'total', label: 'Total Captures', render: val => val.toLocaleString() },
-    { key: 'approval_pct', label: 'Approval %', render: val => val >= 0 ? (val * 100).toFixed(1) + '%' : '-' },
-    { key: 'rejection_rate', label: 'Rejection %', render: val => <span style={{ color: val > data.thresholds.rejection_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>{val !== null ? (val * 100).toFixed(1) + '%' : '-'}</span> },
-    { key: 'duplicate_rate', label: 'Duplicate %', render: val => <span style={{ color: val > data.thresholds.duplicate_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>{val !== null ? (val * 100).toFixed(1) + '%' : '-'}</span> },
+    { key: 'approval_pct', label: 'Clear Images %', render: val => val >= 0 ? (val * 100).toFixed(1) + '%' : '-' },
+    { key: 'rejection_rate', label: 'Unclear Images %', render: val => <span style={{ color: val > data.thresholds.rejection_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>{val !== null ? (val * 100).toFixed(1) + '%' : '-'}</span> },
+    { key: 'duplicate_rate', label: 'Repeat Images %', render: val => <span style={{ color: val > data.thresholds.duplicate_pct / 100 ? 'var(--accent-amber)' : 'inherit' }}>{val !== null ? (val * 100).toFixed(1) + '%' : '-'}</span> },
     { key: 'flagged', label: 'Status', render: val => val ? <span style={{ color: 'var(--accent-rose)' }}>🔴 Flagged</span> : <span style={{ color: 'var(--accent-emerald)' }}>🟢 Healthy</span> },
     { key: 'flag_reason', label: 'Flag Reason', render: val => <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{val || '-'}</span> }
   ];
@@ -47,11 +47,11 @@ export default function HardwareHealth() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
         <StatsCard label="Total Devices" value={data.summary.total_devices.toLocaleString()} />
         <StatsCard label="Flagged Devices" value={data.summary.flagged_count.toLocaleString()} color="var(--accent-rose)" />
-        <StatsCard label="Avg Rejection Rate" value={`${(data.summary.avg_rejection_rate * 100).toFixed(1)}%`} color="var(--accent-amber)" />
+        <StatsCard label="Average Unclear Images" value={`${(data.summary.avg_rejection_rate * 100).toFixed(1)}%`} color="var(--accent-amber)" />
       </div>
 
       <div className="glass-card" style={{ padding: '16px', fontSize: '0.9rem' }}>
-        <strong>Flagging threshold:</strong> devices above {data.thresholds.method} — rejection &gt; {data.thresholds.rejection_pct.toFixed(1)}%, duplicate &gt; {data.thresholds.duplicate_pct.toFixed(1)}%
+        <strong>Alert rule:</strong> devices above {data.thresholds.method} — unclear images &gt; {data.thresholds.rejection_pct.toFixed(1)}%, repeats &gt; {data.thresholds.duplicate_pct.toFixed(1)}%
       </div>
 
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: '400px' }}>

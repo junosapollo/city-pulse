@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { fetchAPI } from '@/lib/api';
 import ChartWrapper from './ChartWrapper';
+import StatsCard from './StatsCard';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, BarChart, Bar, Legend, Cell, LabelList } from 'recharts';
 import { SkeletonChart } from './LoadingSkeleton';
 export default function CorrelationView() {
@@ -41,13 +42,13 @@ export default function CorrelationView() {
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-        <StatsCard label="Pearson Correlation (r)" value={data.correlation_r.toFixed(3)} color="var(--accent-amber)" />
-        <StatsCard label="P-Value" value={data.correlation_p < 0.001 ? '< 0.001' : data.correlation_p.toFixed(3)} color="var(--accent-blue)" />
+        <StatsCard label="Link Strength" value={data.correlation_r.toFixed(3)} color="var(--accent-amber)" />
+        <StatsCard label="Data Reliability" value={data.correlation_p < 0.001 ? '< 0.001' : data.correlation_p.toFixed(3)} color="var(--accent-blue)" />
       </div>
 
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
         <div style={{ flex: 2, minWidth: '400px' }}>
-          <ChartWrapper title="Congestion Correlation Engine" subtitle="Violations (X) vs Incidents (Y) normalized. Click a dot for details.">
+          <ChartWrapper title="Traffic & Parking Issues" subtitle="Fines vs Incidents. Click a dot for details.">
             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis type="number" dataKey="violations_norm" name="Violations" tick={{ fill: 'var(--text-muted)' }} domain={['auto', 'auto']} />
@@ -104,7 +105,7 @@ export default function CorrelationView() {
         )}
       </div>
 
-      <ChartWrapper title="Incident Breakdown for Top 5 Incident Hotspots">
+      <ChartWrapper title="Incident Details for Top 5 Areas">
         <BarChart data={barData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)' }} />

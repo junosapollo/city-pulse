@@ -25,24 +25,24 @@ export default function Sidebar({ activeFeature, setActiveFeature, isCollapsed, 
     {
       title: 'Analysis',
       items: [
-        { id: 'hotspot', label: 'Spatial Hotspot Heatmap', icon: '📍', shortcut: '1' },
-        { id: 'correlation', label: 'Congestion Correlation', icon: '🔗', shortcut: '2' },
-        { id: 'enforcement_gap', label: 'Enforcement Gap Analysis', icon: '⏳', shortcut: '3' },
-        { id: 'pressure_score', label: 'Parking Pressure Score', icon: '📊', shortcut: '4' }
+        { id: 'hotspot', label: 'High-Traffic Areas Map', icon: '📍', shortcut: '1' },
+        { id: 'correlation', label: 'Traffic & Parking Issues', icon: '🔗', shortcut: '2' },
+        { id: 'enforcement_gap', label: 'Missed Ticketing Spots', icon: '⏳', shortcut: '3' },
+        { id: 'pressure_score', label: 'Parking Difficulty Score', icon: '📊', shortcut: '4' }
       ]
     },
     {
       title: 'Intelligence',
       items: [
-        { id: 'prediction', label: 'Predictive Hotspot Forecast', icon: '🔮', shortcut: '5' }
+        { id: 'prediction', label: 'Tomorrow\'s Predictions', icon: '🔮', shortcut: '5' }
       ]
     },
     {
       title: 'Operations',
       items: [
-        { id: 'hardware_health', label: 'Hardware Health Monitor', icon: '🔧', shortcut: '6' },
-        { id: 'offender', label: 'Chronic Offender Tracker', icon: '🚘', shortcut: '7' },
-        { id: 'junction_gap', label: 'Junction Coverage Gap', icon: '🗺️', shortcut: '8' }
+        { id: 'hardware_health', label: 'Camera Status Check', icon: '🔧', shortcut: '6' },
+        { id: 'offender', label: 'Repeat Offenders', icon: '🚘', shortcut: '7' },
+        { id: 'junction_gap', label: 'Camera Blind Spots', icon: '🗺️', shortcut: '8' }
       ]
     }
   ];

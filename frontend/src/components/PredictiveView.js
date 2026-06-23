@@ -23,14 +23,14 @@ export default function PredictiveView() {
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Forecast for {data.forecast_date}</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Predictions for {data.forecast_date}</h2>
         <div style={{ display: 'flex', gap: '16px' }}>
           <div className="glass-card" style={{ padding: '8px 16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ color: 'var(--text-muted)' }}>RMSE:</span>
+            <span style={{ color: 'var(--text-muted)' }}>Error Margin:</span>
             <strong>{data.model_metrics.rmse.toFixed(2)}</strong>
           </div>
           <div className="glass-card" style={{ padding: '8px 16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ color: 'var(--text-muted)' }}>R² Score:</span>
+            <span style={{ color: 'var(--text-muted)' }}>Accuracy Score:</span>
             <strong>{data.model_metrics.r2.toFixed(3)}</strong>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function PredictiveView() {
         ))}
       </div>
 
-      <ChartWrapper title="Model Feature Importance" subtitle="XGBoost internal tree weights.">
+      <ChartWrapper title="What Impacts Predictions Most" subtitle="How much each factor matters.">
         <BarChart data={featImp} layout="vertical" margin={{ top: 20, right: 20, bottom: 20, left: 120 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
           <XAxis type="number" domain={[0, 'auto']} tick={{ fill: 'var(--text-muted)' }} />
@@ -64,7 +64,7 @@ export default function PredictiveView() {
       </ChartWrapper>
 
       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', fontStyle: 'italic' }}>
-        Pattern-based forecast from historical hour/day-of-week trends. Does not incorporate real-time conditions (weather, live events).
+        Predictions based on past data. Doesn't include real-time factors like weather or events.
       </div>
     </div>
   );

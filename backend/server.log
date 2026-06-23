@@ -1,0 +1,15 @@
+INFO:     Started server process [19910]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Loading dataset A...
+Loading dataset B...
+Loaded 298,450 violations and 8,173 events across 54 overlapping stations.
+Computing feature data at startup...
+Startup complete. Data cached.
+INFO:     127.0.0.1:43114 - "GET /api/overview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43124 - "GET /api/offenders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43136 - "GET /api/prediction HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43144 - "GET /api/anomalies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43154 - "POST /api/simulate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43170 - "POST /api/optimize-patrol HTTP/1.1" 200 OK

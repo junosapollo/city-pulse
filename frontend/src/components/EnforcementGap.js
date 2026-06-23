@@ -35,7 +35,7 @@ export default function EnforcementGap() {
     { key: 'name', label: 'Station' },
     { 
       key: 'divergence_score', 
-      label: 'Divergence Score',
+      label: 'Uneven Ticketing Score',
       render: (val) => {
         const isNull = val === null;
         const color = isNull ? 'var(--text-muted)' : val > 0.5 ? 'var(--accent-rose)' : val > 0.3 ? 'var(--accent-amber)' : 'var(--accent-emerald)';
@@ -55,8 +55,8 @@ export default function EnforcementGap() {
   return (
     <div className="scrollable-y" style={{ height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <ChartWrapper 
-        title={`${isCityWide ? 'City-Wide' : selectedStation} Enforcement vs Incidents by Hour`} 
-        subtitle="Shaded areas represent volume. Dashed line represents accidents (city-wide)."
+        title={`${isCityWide ? 'City-Wide' : selectedStation} Fines vs Incidents by Hour`} 
+        subtitle="Shaded areas show amount. Dashed line shows accidents (city-wide)."
         extra={
           <select 
             className="filter-input" 
@@ -84,7 +84,7 @@ export default function EnforcementGap() {
       </ChartWrapper>
 
       <div className="glass-card" style={{ padding: '24px' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Per-Station Divergence Score</h3>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>Uneven Ticketing Score per Station</h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Click a row to view the station's chart above.</p>
         <div onClick={(e) => {
           const tr = e.target.closest('tr');

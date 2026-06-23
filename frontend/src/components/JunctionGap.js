@@ -50,7 +50,7 @@ export default function JunctionGap() {
 
       <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '300px' }}>
-          <ChartWrapper title="Junction Tagging Split">
+          <ChartWrapper title="Junction Data Breakdown">
             <PieChart>
               <Pie data={pieData} innerRadius={80} outerRadius={120} paddingAngle={5} dataKey="value" stroke="none">
                 {pieData.map((entry, index) => (
@@ -65,7 +65,7 @@ export default function JunctionGap() {
 
         <div style={{ flex: 2, minWidth: '400px', height: '450px' }}>
           <div className="glass-card" style={{ height: '100%', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Spatial Distribution of "No Junction" Violations</h3>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Where "No Junction" Violations Happen</h3>
             <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden' }}>
               <MapView>
                 {data.no_junction.locations.map((loc, i) => (
